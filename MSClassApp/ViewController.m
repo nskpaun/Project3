@@ -17,8 +17,10 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    loaded = NO;
     currentDate = [NSDate date];
     [self setViewWithDate];
+    loaded = YES;
     // convert it to a string
 
     
@@ -51,8 +53,18 @@
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc]init];
     [dateFormat setDateFormat:@"ddMMYYYY"];
     NSString *dateString = [dateFormat stringFromDate:currentDate];
-
-    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:[self getDataFrom:[NSString stringWithFormat: @"http://sleepy-taiga-5022.herokuapp.com/api/scripture/?date=%@",dateString]] options:nil error:nil];
+    NSDictionary *json;
+    @try {
+             json = [NSJSONSerialization JSONObjectWithData:[self getDataFrom:[NSString stringWithFormat: @"http://sleepy-taiga-5022.herokuapp.com/api/scripture/?date=%@",dateString]] options:NSJSONReadingMutableContainers error:nil];
+    }
+    @catch (NSException * e) {
+        NSLog(@"Exception: %@", e);
+        return;
+    }
+    @finally {
+        NSLog(@"finally");
+    }
+    
     NSString *stext = [[json objectForKey:@"scripture"] objectForKey:@"text"];
     NSString *ctext = [[json objectForKey:@"scripture"] objectForKey:@"comment"];
     NSString *rtext = [[json objectForKey:@"scripture"] objectForKey:@"reference"];
@@ -81,8 +93,11 @@
     }
     
     [self.badgeView setImage: img];
+    loaded = YES;
 }
 - (IBAction)tomorrow:(id)sender {
+    if (loaded) {
+    loaded = NO;
     NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
     NSDateComponents *todayComponents = [gregorian components:(NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit) fromDate:currentDate];
     NSInteger theDay = [todayComponents day];
@@ -101,9 +116,12 @@
     [offsetComponents setDay:1];
     currentDate = [gregorian dateByAddingComponents:offsetComponents toDate:thisDate options:0];
     [self setViewWithDate];
+    }
 }
 
 - (IBAction)yesterday:(id)sender {
+    if(loaded) {
+        loaded = NO;
     NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
     NSDateComponents *todayComponents = [gregorian components:(NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit) fromDate:currentDate];
     NSInteger theDay = [todayComponents day];
@@ -122,6 +140,7 @@
     [offsetComponents setDay:-1];
     currentDate = [gregorian dateByAddingComponents:offsetComponents toDate:thisDate options:0];
     [self setViewWithDate];
+    }
 }
 
 - (void)didReceiveMemoryWarning

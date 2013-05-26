@@ -10,6 +10,7 @@
 
 @interface ViewController : UIViewController {
     NSDate *currentDate;
+    BOOL loaded;
 }
 @property (strong, nonatomic) IBOutlet UITextView *scriptureTextView;
 @property (strong, nonatomic) IBOutlet UIImageView *badgeView;
